@@ -10,7 +10,6 @@ local paths = {
 	wifi = "wlp0s20f3",
 }
 
-
 beautiful.init(gears.filesystem.get_configuration_dir() .. "theme.lua")
 
 -- Buttons
@@ -41,7 +40,10 @@ local tasklist_buttons = gears.table.join(
 
 local audio_buttons = gears.table.join(
 	awful.button({}, 1, function()
-		awful.util.spawn("pavucontrol")
+		awful.spawn("pavucontrol",	{
+				floating  = true,
+				placement = awful.placement.top_right,
+			})
 	end),
 	awful.button({}, 3, function()
 		awful.util.spawn("pactl set-sink-mute 0 toggle")
@@ -229,15 +231,16 @@ widgets.bat = wibox.widget {
 				if full == nil then
 					full = tonumber(n) or 0
 				elseif now == nil then
-					now = tonumber(n) or 1
+					now = tonumber(n) or 0
 				elseif use == nil then
-					use = tonumber(n) or 0
+					use = tonumber(n) or 1
 				elseif status == nil then
-					isplug = n == "1" or false
+					status = n
 				elseif isplug == nil then
 					isplug = n == "1" or false
 				end
 			end
+			if use == 0 then use = 1 end
 			local percent   = math.floor(100 * now / full)
 			local remaining = "~" ..
 				string.format("%02d:%02d", math.floor(now / use), math.floor((now / use - math.floor(now / use)) * 60))

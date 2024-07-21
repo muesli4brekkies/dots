@@ -443,7 +443,7 @@ keys.clientbuttons = gears.table.join(
     c:emit_signal("request::activate", "mouse_click", { raise = true })
     awful.mouse.client.move(c)
   end),
-  awful.button({ modkey, "Control" }, 1, function(c)
+  awful.button({ modkey, "Shift" }, 1, function(c)
     c:emit_signal("request::activate", "mouse_click", { raise = true })
     awful.mouse.client.resize(c)
   end)
