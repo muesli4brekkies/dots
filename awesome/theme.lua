@@ -1,14 +1,11 @@
--- My Theme
-
-
 local theme_assets = require("beautiful.theme_assets")
 
-
--- BASICS
 local theme                 = {}
-theme.fontsize              = 10
-theme.fontname              = "IBM Plex Mono Bold "
-theme.font                  = theme.fontname .. theme.fontsize
+local fontsize              = 10
+local fontname              = "IBM Plex Mono Bold "
+local taglist_square_size   = fontsize / 2
+
+theme.font                  = fontname .. fontsize
 theme.bg_normal             = "#38161f"
 theme.bg_focus              = "#621534"
 theme.bg_urgent             = "#aa4400"
@@ -44,11 +41,9 @@ theme.widget                = {
     white        = "#ffffff",
 }
 
-
 theme.awesome_icon          = "/home/muesli/.config/awesome/archmenulogo.png"
 
 -- Generate taglist squares:
-local taglist_square_size   = theme.fontsize / 2
 theme.taglist_squares_sel   = theme_assets.taglist_squares_sel(
     taglist_square_size, theme.fg_focus
 )
@@ -56,18 +51,13 @@ theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
     taglist_square_size, theme.fg_normal
 )
 
--- Variables set for theming notifications:
-theme.notification_font     = theme.fontname .. theme.fontsize * 2
+theme.notification_font     = fontname .. fontsize * 2
 theme.notification_bg       = theme.bg_focus
 theme.notification_fg       = theme.fg_focus
 
-
--- MISC
 theme.wallpaper       = "/usr/share/backgrounds/wallpaper.jpg"
 theme.taglist_squares = "true"
-theme.menu_height     = theme.fontsize * 2
+theme.menu_height     = fontsize * 2
 theme.menu_width      = theme.menu_height * 5.5
 
 return theme
-
--- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80

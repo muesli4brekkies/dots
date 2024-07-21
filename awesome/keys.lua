@@ -53,11 +53,11 @@ local globalkeys = gears.table.join(
 
   -- Brightness
   awful.key({}, "XF86MonBrightnessDown", function()
-    awful.util.spawn("brightnessctl set 5%-")
+    awful.util.spawn("brightnessctl set 1%-")
   end),
 
   awful.key({}, "XF86MonBrightnessUp", function()
-    awful.util.spawn("brightnessctl set +5%")
+    awful.util.spawn("brightnessctl set +1%")
   end),
 
 
@@ -104,26 +104,31 @@ local globalkeys = gears.table.join(
 
   -- Touchpad Toggle
   awful.key({ "Mod1" }, "space", function()
-    local touchpadID
-    for line in os.capture("xinput list") do
-      if line:find("Touchpad") then
-        local i, j = line:find("id=%d+")
-        touchpadID = line:sub(i + 3, j)
-        break
-      end
-    end
-    for line in os.capture("xinput list-props " .. touchpadID) do
-      if line:match("Device Enabled") then
-        if line:find("1$") then
-          awful.util.spawn("xinput disable " .. touchpadID)
-          awful.util.spawn("dunstify 'Touchpad disabled' ")
-        else
-          awful.util.spawn("xinput enable " .. touchpadID)
-          awful.util.spawn("dunstify 'Touchpad enabled' ")
+    local function getid()
+      for line in os.capture("xinput list") do
+        if line:find("Touchpad") then
+          local i, j = line:find("id=%d+")
+          return line:sub(i + 3, j)
         end
-        break
       end
     end
+
+    local function toggle(id)
+      for line in os.capture("xinput list-props " .. id) do
+        if line:match("Device Enabled") then
+          if line:find("1$") then
+            awful.util.spawn("xinput disable " .. id)
+            awful.util.spawn("dunstify 'Touchpad disabled' ")
+          else
+            awful.util.spawn("xinput enable " .. id)
+            awful.util.spawn("dunstify 'Touchpad enabled' ")
+          end
+          return
+        end
+      end
+    end
+
+    toggle(getid())
   end),
 
 
@@ -205,19 +210,14 @@ local globalkeys = gears.table.join(
   -- Layout manipulation
   awful.key({ modkey, "Shift" }, "Down", function() awful.client.swap.byidx(1) end,
     { description = "swap with next client by index", group = "client" }),
-
   awful.key({ modkey, "Shift" }, "Up", function() awful.client.swap.byidx(-1) end,
     { description = "swap with previous client by index", group = "client" }),
-
   awful.key({ modkey, "Shift" }, "j", function() awful.client.swap.byidx(1) end,
     { description = "swap with next client by index", group = "client" }),
-
   awful.key({ modkey, "Shift" }, "k", function() awful.client.swap.byidx(-1) end,
     { description = "swap with previous client by index", group = "client" }),
-
   awful.key({ modkey, "Control" }, "j", function() awful.screen.focus_relative(1) end,
     { description = "focus the next screen", group = "screen" }),
-
   awful.key({ modkey, "Control" }, "k", function() awful.screen.focus_relative(-1) end,
     { description = "focus the previous screen", group = "screen" }),
 
@@ -225,10 +225,8 @@ local globalkeys = gears.table.join(
   -- Launch Terminal
   awful.key({ modkey, }, "Return", function() awful.spawn(terminal) end,
     { description = "open a terminal", group = "launcher" }),
-
   awful.key({ modkey, }, "t", function() awful.spawn(terminal) end,
     { description = "open a terminal", group = "launcher" }),
-
   awful.key({ modkey, }, "KP_Enter", function() awful.spawn(terminal) end,
     { description = "open a terminal", group = "launcher" }),
 
@@ -244,13 +242,10 @@ local globalkeys = gears.table.join(
   -- Adjust horizontal tiling
   awful.key({ modkey, }, "Right", function() awful.tag.incmwfact(0.05) end,
     { description = "increase master width factor", group = "layout" }),
-
   awful.key({ modkey, }, "Left", function() awful.tag.incmwfact(-0.05) end,
     { description = "decrease master width factor", group = "layout" }),
-
   awful.key({ modkey, }, "l", function() awful.tag.incmwfact(0.05) end,
     { description = "increase master width factor", group = "layout" }),
-
   awful.key({ modkey, }, "h", function() awful.tag.incmwfact(-0.05) end,
     { description = "decrease master width factor", group = "layout" }),
 
@@ -258,13 +253,10 @@ local globalkeys = gears.table.join(
   -- Shift tiles between columns
   awful.key({ modkey, "Shift" }, "Left", function() awful.tag.incnmaster(1, nil, true) end,
     { description = "increase the number of master clients", group = "layout" }),
-
   awful.key({ modkey, "Shift" }, "Right", function() awful.tag.incnmaster(-1, nil, true) end,
     { description = "decrease the number of master clients", group = "layout" }),
-
   awful.key({ modkey, "Shift" }, "h", function() awful.tag.incnmaster(1, nil, true) end,
     { description = "increase the number of master clients", group = "layout" }),
-
   awful.key({ modkey, "Shift" }, "l", function() awful.tag.incnmaster(-1, nil, true) end,
     { description = "decrease the number of master clients", group = "layout" }),
 
@@ -272,13 +264,10 @@ local globalkeys = gears.table.join(
   -- Adjust number of columns
   awful.key({ modkey, "Control" }, "Left", function() awful.tag.incncol(1, nil, true) end,
     { description = "increase the number of columns", group = "layout" }),
-
   awful.key({ modkey, "Control" }, "Right", function() awful.tag.incncol(-1, nil, true) end,
     { description = "decrease the number of columns", group = "layout" }),
-
   awful.key({ modkey, "Control" }, "h", function() awful.tag.incncol(1, nil, true) end,
     { description = "increase the number of columns", group = "layout" }),
-
   awful.key({ modkey, "Control" }, "l", function() awful.tag.incncol(-1, nil, true) end,
     { description = "decrease the number of columns", group = "layout" }),
 
@@ -287,7 +276,7 @@ local globalkeys = gears.table.join(
   awful.key({ modkey }, "r", function() awful.screen.focused().mypromptbox:run() end,
     { description = "run prompt", group = "launcher" }),
 
-    
+
   -- dmenu
   awful.key({ modkey }, "d", function() menubar.show() end,
     { description = "show the menubar", group = "launcher" }),
@@ -304,7 +293,7 @@ local globalkeys = gears.table.join(
       end
     end,
     { description = "restore minimized", group = "client" }),
-    
+
   awful.key({ modkey, }, "m",
     function()
       local c = awful.client.restore()
@@ -368,21 +357,21 @@ keys.clientkeys = gears.table.join(
 
 
   -- toggle maximise
-  awful.key({ modkey, }, "space",
+  awful.key({ modkey, }, "e",
     function(c)
       c.maximized = not c.maximized
       c:raise()
     end,
     { description = "(un)maximize", group = "client" }),
 
-  awful.key({ modkey, "Control" }, "space",
+  awful.key({ modkey, "Control" }, "e",
     function(c)
       c.maximized_vertical = not c.maximized_vertical
       c:raise()
     end,
     { description = "(un)maximize vertically", group = "client" }),
 
-  awful.key({ modkey, "Shift" }, "space",
+  awful.key({ modkey, "Shift" }, "e",
     function(c)
       c.maximized_horizontal = not c.maximized_horizontal
       c:raise()
@@ -405,7 +394,7 @@ for i = 1, 3 do
       end,
       { description = "view tag #" .. i, group = "tag" }),
 
-      
+
     -- Toggle tag display.
     awful.key({ modkey, "Control" }, "#" .. i + 9,
       function()
