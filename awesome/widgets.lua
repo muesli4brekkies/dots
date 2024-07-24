@@ -2,6 +2,7 @@ local beautiful = require("beautiful")
 local wibox = require("wibox")
 local gears = require("gears")
 local awful = require("awful")
+local naughty = require("naughty")
 
 -- PATHS. Make sure these are correct if stuff breaks
 local paths = {
@@ -10,12 +11,21 @@ local paths = {
 	wifi = "wlp0s20f3",
 }
 
+local function split(stdout, patt)
+	if patt == nil then patt = "%S+" end
+	local tbl = {}
+	for s in stdout:gmatch(patt) do
+		table.insert(tbl, s)
+	end
+	return tbl
+end
+
 beautiful.init(gears.filesystem.get_configuration_dir() .. "theme.lua")
 
 -- Buttons
 local tasklist_buttons = gears.table.join(
 	awful.button({}, 1, function(c)
-		if c == client.focus then
+		if c == awful.client.focus then
 			c.minimized = true
 		else
 			c:emit_signal(
@@ -40,10 +50,10 @@ local tasklist_buttons = gears.table.join(
 
 local audio_buttons = gears.table.join(
 	awful.button({}, 1, function()
-		awful.spawn("pavucontrol",	{
-				floating  = true,
-				placement = awful.placement.top_right,
-			})
+		awful.spawn("pavucontrol", {
+			floating  = true,
+			placement = awful.placement.top_right,
+		})
 	end),
 	awful.button({}, 3, function()
 		awful.util.spawn("pactl set-sink-mute 0 toggle")
@@ -83,14 +93,14 @@ local cpu_buttons = gears.table.join(
 local taglist_buttons = gears.table.join(
 	awful.button({}, 1, function(t) t:view_only() end),
 	awful.button({ modkey }, 1, function(t)
-		if client.focus then
-			client.focus:move_to_tag(t)
+		if awful.client.focus then
+			awful.client.focus:move_to_tag(t)
 		end
 	end),
 	awful.button({}, 3, awful.tag.viewtoggle),
 	awful.button({ modkey }, 3, function(t)
-		if client.focus then
-			client.focus:toggle_tag(t)
+		if awful.client.focus then
+			awful.client.focus:toggle_tag(t)
 		end
 	end),
 	awful.button({}, 4, function(t) awful.tag.viewnext(t.screen) end),
@@ -106,7 +116,7 @@ local widgets = {}
 widgets.brightness = wibox.widget {
 	buttons = brightness_buttons,
 	widget  = awful.widget.watch(
-		{ awful.util.shell, "-c", "echo $((($(brightnessctl g)) * 100/($(brightnessctl m))))%" },
+		{ awful.util.shell, "-c", "echo $((100 * $(brightnessctl g) / $(brightnessctl m)))%" },
 		3,
 		function(widget, stdout)
 			widget:set_markup('<span color="#bdaf4f" size="150%" >✰</span><span baseline-shift="2pt" color="#bdaf4f">~' ..
@@ -132,33 +142,23 @@ widgets.audio = wibox.widget {
 widgets.ssid = wibox.widget {
 	buttons = wifi_buttons,
 	widget  = awful.widget.watch(
-		{ awful.util.shell, "-c", "echo $(iw dev " .. paths.wifi .. " link | grep -Po '((?<=SSID: )\\w+|Not connected)') $(iw dev " .. paths.wifi .. " link | grep -Po '(?<=signal: )-\\d+')" },
+		{ awful.util.shell,
+			"-c",
+			"if [[ $(ls /sys/class/net | grep en) ]];then echo Ethernet; else echo -n $(iw dev " .. paths.wifi .. " link | perl -p -e 's/(|dBm)\\n/,\\n/g' | grep -Po 'Not connected|(?<=(SSID|signal):).+' -); fi" },
 		5,
 		function(widget, stdout)
-			local ssid
-			local signal
-			local colour
-			if stdout:find("Not connected.") then
-				ssid = stdout
-				colour = beautiful.widget.brightRed
-			else
-				for s in stdout:gmatch("%S+") do
-					if ssid == nil then
-						ssid = s or "no connection"
-					else
-						signal = tonumber(s) or -999
-					end
-				end
-				if signal <= -75 then
-					colour = beautiful.widget.brightOrange
-				elseif signal <= -66 then
-					colour = beautiful.widget.yellow
-				else
-					colour = beautiful.widget.green
-				end
+			local function parse(tab)
+				local ssid = tab[1]
+				local signal = tonumber(tab[2])
+				if ssid == "Ethernet" then return { beautiful.widget.green, "Ethernet" } end
+				if ssid == "Not connected" and signal == nil then return { beautiful.widget.brightRed, "no connection" } end
+				if signal <= -75 then return { beautiful.widget.brightOrange, ssid } end
+				if signal <= -66 then return { beautiful.widget.yellow, ssid } end
+				return { beautiful.widget.green, ssid }
 			end
-			widget:set_markup('<span color="' .. colour .. '">' ..
-				ssid ..
+			local res = parse(split(stdout, "[^,]+"))
+			widget:set_markup('<span color="' .. res[1] .. '">' ..
+				res[2] ..
 				'</span>')
 		end
 	)
@@ -172,13 +172,10 @@ widgets.cpu = wibox.widget {
 		3,
 		function(widget, stdout)
 			local use, temp
-			for n in stdout:gmatch("%S+") do
-				if use == nil then
-					use = tonumber(n) or 0
-				else
-					temp = tonumber(n) or 999
-				end
-			end
+			local t = split(stdout)
+			use = tonumber(t[1])
+			temp = tonumber(t[2])
+
 			local u_col, t_col
 			if use >= 80 then
 				u_col = beautiful.widget.brightRed
@@ -200,7 +197,7 @@ widgets.cpu = wibox.widget {
 			end
 			widget:set_markup(
 				'<span color="' .. u_col .. '">' ..
-				use ..
+				string.format("%2d", use) ..
 				'%~</span><span color="' .. t_col .. '">' ..
 				temp ..
 				'°C</span>')
@@ -213,7 +210,7 @@ widgets.bat = wibox.widget {
 	widget = awful.widget.watch(
 		{ awful.util.shell,
 			"-c",
-			"f(){ path=/sys/class/power_supply/;/bin/cat $path$1;};echo $(f " ..
+			"f(){ /bin/cat /sys/class/power_supply/$1;};echo $(f " ..
 			paths.bat ..
 			"/energy_full) $(f " ..
 			paths.bat ..
@@ -224,29 +221,23 @@ widgets.bat = wibox.widget {
 			"/status) $(f " ..
 			paths.ac ..
 			"/online)" },
-		5,
+		7,
 		function(widget, stdout)
-			local full, now, use, status, isplug
-			for n in stdout:gmatch("%S+") do
-				if full == nil then
-					full = tonumber(n) or 0
-				elseif now == nil then
-					now = tonumber(n) or 0
-				elseif use == nil then
-					use = tonumber(n) or 1
-				elseif status == nil then
-					status = n
-				elseif isplug == nil then
-					isplug = n == "1" or false
-				end
-			end
+			local t = split(stdout)
+			local full = tonumber(t[1])
+			local now = tonumber(t[2])
+			local use = tonumber(t[3])
+			local status = t[4] == "Charging"
+			local isplug = t[5] == "1"
 			if use == 0 then use = 1 end
 			local percent   = math.floor(100 * now / full)
 			local remaining = "~" ..
-				string.format("%02d:%02d", math.floor(now / use), math.floor((now / use - math.floor(now / use)) * 60))
+				string.format("%02d:%02d",
+					math.floor(now / use) % 24,
+					math.floor((now / use - math.floor(now / use)) * 60))
 			local bg        = beautiful.bg_normal
 			local colour    = beautiful.widget.yellow
-			if isplug or status == "Charging" then
+			if isplug or status then
 				colour = beautiful.widget.green
 				remaining = ""
 			elseif percent <= 10 then
@@ -269,34 +260,30 @@ widgets.date = wibox.widget {
 		"date '+%a %d %b %H:%M'",
 		10,
 		function(widget, stdout)
-			local parts = {}
-			for w in stdout:gmatch("%S+") do table.insert(parts, w) end
-
 			local function getColour(str)
-				if str == "Mon" or str == "Jan" or str == "Aug" then
-					return beautiful.widget.red
-				elseif str == "Tue" or str == "Feb" or str == "Sep" then
-					return beautiful.widget.orange
-				elseif str == "Wed" or str == "Mar" or str == "Oct" then
-					return beautiful.widget.yellow
-				elseif str == "Thu" or str == "Apr" or str == "Nov" then
-					return beautiful.widget.green
-				elseif str == "Fri" or str == "May" or str == "Dec" then
-					return beautiful.widget.blue
-				elseif str == "Sat" or str == "Jun" then
-					return beautiful.widget.indigo
-				else
-					return beautiful.widget.violet
+				local function has(table, element)
+					for _, value in pairs(table) do
+						if value == element then return true end
+					end
+					return false
 				end
+				if has({ "Mon", "Jan", "Aug" }, str) then return beautiful.widget.red end
+				if has({ "Tue", "Feb", "Sep" }, str) then return beautiful.widget.orange end
+				if has({ "Wed", "Mar", "Oct" }, str) then return beautiful.widget.yellow end
+				if has({ "Wed", "Apr", "Nov" }, str) then return beautiful.widget.green end
+				if has({ "Fri", "May", "Dec" }, str) then return beautiful.widget.blue end
+				if has({ "Sat", "Jun" }, str) then return beautiful.widget.indigo end
+				return beautiful.widget.violet
 			end
 
+			local parts = split(stdout)
 			widget:set_markup('<span baseline-shift="2pt" color="' .. getColour(parts[1]) .. '">' ..
 				parts[1] ..
 				'</span><span font-size="x-large">' ..
 				parts[2] ..
 				'</span><span baseline-shift="2pt" color="' .. getColour(parts[3]) .. '">' ..
 				parts[3] ..
-				'</span><span font-size="x-large"> ' ..
+				' </span><span font-size="x-large">' ..
 				parts[4] ..
 				'</span>')
 		end

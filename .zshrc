@@ -65,7 +65,7 @@ alias x="startx"
 # Vim term exit
 alias :q="exit"
 # Achtung
-alias alert="echo -e \"\a\""
+alias alert="echo -e '\a'"
 # BitBurner
 alias bb="code ~/git/js_ts/butbirner-scripts & npm start --prefix ~/git/js_ts/butbirner-scripts & npm start --prefix ~/git/js_ts/bitburner-src && pkill -P $$"
 # Copy file to clipboard

@@ -240,22 +240,12 @@ awful.rules.rules = {
   {
     rule_any = {
       instance = {
-        "DTA", -- Firefox addon DownThemAll.
-        "copyq", -- Includes session name in class.
-        "pinentry",
       },
       class = {
         "Arandr",
         "Blueman-manager",
-        "Gpick",
-        "Kruler",
-        "MessageWin", -- kalarm.
         "pavucontrol",
-        "Sxiv",
-        "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
-        "Wpa_gui",
-        "veromix",
-        "xtightvncviewer" },
+        },
 
       -- Note that the name property shown in xprop might be set slightly after creation of the client
       -- and the name shown there might not match defined rules here.
@@ -270,13 +260,6 @@ awful.rules.rules = {
       }
     },
     properties = { floating = true }
-  },
-
-  -- Add titlebars to normal clients and dialogs
-  {
-    rule_any = { type = { "normal", "dialog" }
-    },
-    properties = { titlebars_enabled = false }
   },
 
   -- Set Firefox to always map on the tag named "2" on screen 1.
@@ -310,10 +293,7 @@ client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_n
 -- }}}
 
 -- Garbage Collection
-collectgarbage("setpause", 160)
-collectgarbage("setstepmul", 400)
-
-gears.timer.start_new(10, function()
-  collectgarbage("step", 20000)
+gears.timer.start_new(180, function()
+  collectgarbage("collect")
   return true
 end)

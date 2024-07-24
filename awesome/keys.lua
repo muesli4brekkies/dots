@@ -90,7 +90,7 @@ local globalkeys = gears.table.join(
     local outstr = ""
     for line in os.capture("xrandr") do
       if line:byte(1) == 32 then goto continue end -- ignore lines starting with spaces
-      local screen = line:sub(line:find("%S+"))
+      local screen = line:sub(line:find("%S+") or 0)
       if line:find(" connected ") then
         outstr = outstr .. "xrandr --output " .. screen .. " --auto" .. "&"
       else
@@ -200,8 +200,8 @@ local globalkeys = gears.table.join(
   awful.key({ modkey, }, "u", awful.client.urgent.jumpto,
     function()
       awful.client.focus.history.previous()
-      if client.focus then
-        client.focus:raise()
+      if awful.client.focus then
+        awful.client.focus:raise()
       end
     end,
     { description = "focus urgent client", group = "client" }),
