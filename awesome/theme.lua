@@ -1,4 +1,4 @@
-local theme_assets = require("beautiful.theme_assets")
+local theme_assets          = require("beautiful.theme_assets")
 
 local theme                 = {}
 local fontsize              = 10
@@ -30,13 +30,14 @@ theme.tasklist_align        = "center"
 
 theme.widget                = {
     brightRed    = "#ff0000",
-    red          = "#801313",
-    brightOrange = "#fa8c05",
-    orange       = "#995706",
+    lightYellow  = "#bdaf4f",
+    lightBlue    = "#6cb7bd",
+    red          = "#d9301c",
+    orange       = "#de7f1b",
     yellow       = "#ab8f05",
     green        = "#4a8a4b",
-    blue         = "#5eacb5",
-    indigo       = "#6e5eb5",
+    blue         = "#396ad4",
+    indigo       = "#7f14e3",
     violet       = "#ab5eb5",
     white        = "#ffffff",
 }
@@ -55,9 +56,9 @@ theme.notification_font     = fontname .. fontsize * 2
 theme.notification_bg       = theme.bg_focus
 theme.notification_fg       = theme.fg_focus
 
-theme.wallpaper       = "/usr/share/backgrounds/wallpaper.jpg"
-theme.taglist_squares = "true"
-theme.menu_height     = fontsize * 2
-theme.menu_width      = theme.menu_height * 5.5
+theme.wallpaper             = "/usr/share/backgrounds/wallpaper.jpg"
+theme.taglist_squares       = "true"
+theme.menu_height           = fontsize * 2
+theme.menu_width            = theme.menu_height * 5.5
 
 return theme

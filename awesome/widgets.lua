@@ -2,7 +2,6 @@ local beautiful = require("beautiful")
 local wibox = require("wibox")
 local gears = require("gears")
 local awful = require("awful")
-local naughty = require("naughty")
 
 -- PATHS. Make sure these are correct if stuff breaks
 local paths = {
@@ -119,8 +118,9 @@ widgets.brightness = wibox.widget {
 		{ awful.util.shell, "-c", "echo $((100 * $(brightnessctl g) / $(brightnessctl m)))%" },
 		3,
 		function(widget, stdout)
-			widget:set_markup('<span color="#bdaf4f" size="150%" >✰</span><span baseline-shift="2pt" color="#bdaf4f">~' ..
-				stdout .. '</span>')
+			widget:set_markup(
+				string.format('<span color="%s"><span size="150%%">✰</span><span baseline-shift="2pt">~%s</span></span>',
+					beautiful.widget.lightYellow, stdout))
 		end
 	)
 }
@@ -132,8 +132,9 @@ widgets.audio = wibox.widget {
 		"pamixer --get-volume-human",
 		2,
 		function(widget, stdout)
-			widget:set_markup('<span color="#6cb7bd" size="150%" >♫</span><span baseline-shift="2pt" color="#6cb7bd">~' ..
-				stdout .. '</span>')
+			widget:set_markup(
+				string.format('<span color="%s"><span size="150%%">♫</span><span baseline-shift="2pt">~%s</span></span>',
+					beautiful.widget.lightBlue, stdout))
 		end
 	)
 }
@@ -144,22 +145,21 @@ widgets.ssid = wibox.widget {
 	widget  = awful.widget.watch(
 		{ awful.util.shell,
 			"-c",
-			"if [[ $(ls /sys/class/net | grep en) ]];then echo Ethernet; else echo -n $(iw dev " .. paths.wifi .. " link | perl -p -e 's/(|dBm)\\n/,\\n/g' | grep -Po 'Not connected|(?<=(SSID|signal):).+' -); fi" },
+			"for f in $(ls /sys/class/net | tr '\\n' ' '); do if [[ -z $(grep -E ^w - <<< $f) ]]; then read etdev <<< $f; else read widev <<< $f; fi; done;if [[ 'up' = $(cat /sys/class/net/$etdev/operstate) ]]; then echo Ethernet; else iw dev $widev link | grep -Po 'Not connected|(?<=(SSID|signal):).+' - | { read ssid; read sig; }; echo \"$ssid\",$(tr -d 'dBm' <<< \"$sig\"); fi"
+		},
 		5,
 		function(widget, stdout)
 			local function parse(tab)
 				local ssid = tab[1]
 				local signal = tonumber(tab[2])
-				if ssid == "Ethernet" then return { beautiful.widget.green, "Ethernet" } end
+				if ssid == "Ethernet\n" and signal == nil then return { beautiful.widget.green, "Ethernet" } end
 				if ssid == "Not connected" and signal == nil then return { beautiful.widget.brightRed, "no connection" } end
 				if signal <= -75 then return { beautiful.widget.brightOrange, ssid } end
 				if signal <= -66 then return { beautiful.widget.yellow, ssid } end
 				return { beautiful.widget.green, ssid }
 			end
 			local res = parse(split(stdout, "[^,]+"))
-			widget:set_markup('<span color="' .. res[1] .. '">' ..
-				res[2] ..
-				'</span>')
+			widget:set_markup(string.format('<span color="%s">%s</span>', res[1], res[2]))
 		end
 	)
 }
@@ -171,36 +171,27 @@ widgets.cpu = wibox.widget {
 		"/home/muesli/.config/awesome/cpustat.sh",
 		3,
 		function(widget, stdout)
-			local use, temp
-			local t = split(stdout)
-			use = tonumber(t[1])
-			temp = tonumber(t[2])
-
-			local u_col, t_col
-			if use >= 80 then
-				u_col = beautiful.widget.brightRed
-			elseif use >= 60 then
-				u_col = beautiful.widget.brightOrange
-			elseif use >= 40 then
-				u_col = beautiful.widget.yellow
-			else
-				u_col = beautiful.widget.green
+			local function col_use(use)
+				if use >= 80 then return beautiful.widget.brightRed end
+				if use >= 60 then return beautiful.widget.orange end
+				if use >= 40 then return beautiful.widget.yellow end
+				return beautiful.widget.green
 			end
-			if temp >= 70 then
-				t_col = beautiful.widget.brightRed
-			elseif temp >= 55 then
-				t_col = beautiful.widget.brightOrange
-			elseif temp >= 40 then
-				t_col = beautiful.widget.yellow
-			else
-				t_col = beautiful.widget.green
+			local function col_temp(temp)
+				if temp >= 70 then return beautiful.widget.brightRed end
+				if temp >= 55 then return beautiful.widget.orange end
+				if temp >= 40 then return beautiful.widget.yellow end
+				return beautiful.widget.green
 			end
+			local tab = split(stdout)
 			widget:set_markup(
-				'<span color="' .. u_col .. '">' ..
-				string.format("%2d", use) ..
-				'%~</span><span color="' .. t_col .. '">' ..
-				temp ..
-				'°C</span>')
+				string.format(
+					'<span color="%s">%s%%~</span><span color="%s">%s°C</span>',
+					col_use(tonumber(tab[1])),
+					string.format("%2d", tab[1]),
+					col_temp(tonumber(tab[2])),
+					tab[2])
+			)
 		end
 	)
 }
@@ -210,46 +201,40 @@ widgets.bat = wibox.widget {
 	widget = awful.widget.watch(
 		{ awful.util.shell,
 			"-c",
-			"f(){ /bin/cat /sys/class/power_supply/$1;};echo $(f " ..
-			paths.bat ..
-			"/energy_full) $(f " ..
-			paths.bat ..
-			"/energy_now) $(f " ..
-			paths.bat ..
-			"/power_now) $(f " ..
-			paths.bat ..
-			"/status) $(f " ..
-			paths.ac ..
-			"/online)" },
+			string.format("f(){ /bin/cat /sys/class/power_supply/$1;};echo $(f %s/energy_full) $(f %s/energy_now) $(f %s/power_now) $(f %s/status) $(f %s/online)",
+				paths.bat,
+				paths.bat,
+				paths.bat,
+				paths.bat,
+				paths.ac)
+		},
 		7,
 		function(widget, stdout)
+			local function remaining(plugged, now, use)
+				if plugged then return "" end
+				if use == 0 then use = 1 end
+				return "~" ..
+					string.format("%02d:%02d",
+						math.floor(now / use) % 24,
+						math.floor((now / use - math.floor(now / use)) * 60))
+			end
+			local function get_style(percent, plugged)
+				if plugged and percent ~= 100 then return beautiful.bg_normal .. '"color="' .. beautiful.widget.blue end
+				if percent < 11 then return beautiful.widget.brightRed .. '"color="' .. beautiful.widget.white end
+				if percent < 21 then return beautiful.bg_normal .. '"color="' .. beautiful.widget.orange end
+				if percent < 51 then return beautiful.bg_normal .. '"color="' .. beautiful.widget.yellow end
+				return beautiful.bg_normal .. '"color="' .. beautiful.widget.green
+			end
 			local t = split(stdout)
 			local full = tonumber(t[1])
 			local now = tonumber(t[2])
 			local use = tonumber(t[3])
-			local status = t[4] == "Charging"
-			local isplug = t[5] == "1"
-			if use == 0 then use = 1 end
-			local percent   = math.floor(100 * now / full)
-			local remaining = "~" ..
-				string.format("%02d:%02d",
-					math.floor(now / use) % 24,
-					math.floor((now / use - math.floor(now / use)) * 60))
-			local bg        = beautiful.bg_normal
-			local colour    = beautiful.widget.yellow
-			if isplug or status then
-				colour = beautiful.widget.green
-				remaining = ""
-			elseif percent <= 10 then
-				colour = beautiful.widget.white
-				bg = beautiful.widget.brightRed
-			elseif percent <= 20 then
-				colour = beautiful.widget.brightOrange
-			end
-			widget:set_markup('<span background="' .. bg .. '"color="' .. colour .. '">' ..
-				percent .. "%" ..
-				remaining ..
-				'</span>')
+			local plugged = t[4] == "Charging" or t[5] == "1"
+			local percent = math.floor(100 * now / full)
+			widget:set_markup(string.format('<span background="%s">%s%%%s</span>',
+				get_style(percent, plugged),
+				percent,
+				remaining(plugged, now, use)))
 		end
 	)
 }
@@ -261,11 +246,9 @@ widgets.date = wibox.widget {
 		10,
 		function(widget, stdout)
 			local function getColour(str)
-				local function has(table, element)
-					for _, value in pairs(table) do
-						if value == element then return true end
-					end
-					return false
+				local function has(table, element, i)
+					local i = i or 1
+					if table[i] == element then return true elseif i < #table then has(table, element, i + 1) else return false end
 				end
 				if has({ "Mon", "Jan", "Aug" }, str) then return beautiful.widget.red end
 				if has({ "Tue", "Feb", "Sep" }, str) then return beautiful.widget.orange end
@@ -277,15 +260,15 @@ widgets.date = wibox.widget {
 			end
 
 			local parts = split(stdout)
-			widget:set_markup('<span baseline-shift="2pt" color="' .. getColour(parts[1]) .. '">' ..
-				parts[1] ..
-				'</span><span font-size="x-large">' ..
-				parts[2] ..
-				'</span><span baseline-shift="2pt" color="' .. getColour(parts[3]) .. '">' ..
-				parts[3] ..
-				' </span><span font-size="x-large">' ..
-				parts[4] ..
-				'</span>')
+			widget:set_markup(string.format(
+				'<span baseline-shift="2pt" color="%s">%s</span><span font-size="x-large">%s</span><span baseline-shift="2pt" color="%s">%s </span><span font-size="x-large">%s</span>',
+				getColour(parts[1]),
+				parts[1],
+				parts[2],
+				getColour(parts[3]),
+				parts[3],
+				parts[4]
+			))
 		end
 	),
 }
