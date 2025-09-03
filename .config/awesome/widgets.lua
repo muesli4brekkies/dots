@@ -1,14 +1,8 @@
 local beautiful = require("beautiful")
+
 local wibox = require("wibox")
 local gears = require("gears")
 local awful = require("awful")
-
--- PATHS. Make sure these are correct if stuff breaks
-local paths = {
-	bat = "BAT0",
-	ac = "ADP1",
-	wifi = "wlp0s20f3",
-}
 
 local function split(stdout, patt)
 	if patt == nil then patt = "%S+" end
@@ -119,7 +113,7 @@ widgets.brightness = wibox.widget {
 		3,
 		function(widget, stdout)
 			widget:set_markup(
-				string.format('<span color="%s"><span size="150%%">✰</span><span baseline-shift="2pt">~%s</span></span>',
+				string.format('<span color="%s">%s</span>',
 					beautiful.widget.lightYellow, stdout))
 		end
 	)
@@ -133,7 +127,7 @@ widgets.audio = wibox.widget {
 		2,
 		function(widget, stdout)
 			widget:set_markup(
-				string.format('<span color="%s"><span size="150%%">♫</span><span baseline-shift="2pt">~%s</span></span>',
+				string.format('<span color="%s">%s</span>',
 					beautiful.widget.lightBlue, stdout))
 		end
 	)
@@ -145,7 +139,7 @@ widgets.ssid = wibox.widget {
 	widget  = awful.widget.watch(
 		{ awful.util.shell,
 			"-c",
-			"for f in $(ls /sys/class/net | tr '\\n' ' '); do if [[ -z $(grep -E ^w - <<< $f) ]]; then read etdev <<< $f; else read widev <<< $f; fi; done;if [[ 'up' = $(cat /sys/class/net/$etdev/operstate) ]]; then echo Ethernet; else iw dev $widev link | grep -Po 'Not connected|(?<=(SSID|signal):).+' - | { read ssid; read sig; }; echo \"$ssid\",$(tr -d 'dBm' <<< \"$sig\"); fi"
+			"for f in $(ls --color=none /sys/class/net); do if [[ -n $(grep -E ^w - <<< $f) ]]; then read widev <<< $f; elif [[ -n $(grep -E ^e - <<< $f) ]]; then read etdev <<< $f; fi; done;if [[ 'up' = $(cat /sys/class/net/$etdev/operstate) ]]; then echo Ethernet; else iw dev $widev link | grep -Po 'Not connected|(?<=(SSID|signal):).+' - | { read ssid; read sig; }; echo \"$ssid\",$(tr -d 'dBm' <<< \"$sig\"); fi"
 		},
 		5,
 		function(widget, stdout)
@@ -201,12 +195,7 @@ widgets.bat = wibox.widget {
 	widget = awful.widget.watch(
 		{ awful.util.shell,
 			"-c",
-			string.format("f(){ /bin/cat /sys/class/power_supply/$1;};echo $(f %s/energy_full) $(f %s/energy_now) $(f %s/power_now) $(f %s/status) $(f %s/online)",
-				paths.bat,
-				paths.bat,
-				paths.bat,
-				paths.bat,
-				paths.ac)
+			"for d in $(ls /sys/class/power_supply); do if [[ -n $(grep -E ^A - <<< $d) ]]; then read acdev <<< $d;elif [[ -n $(grep BAT0 - <<< $d) ]];then read btdev <<< $d;fi;done;f(){ /bin/cat /sys/class/power_supply/$1;}; echo $(f $btdev/energy_full) $(f $btdev/energy_now) $(f $btdev/power_now) $(f $btdev/status) $(f $acdev/online)"
 		},
 		7,
 		function(widget, stdout)
@@ -250,12 +239,12 @@ widgets.date = wibox.widget {
 					local i = i or 1
 					if table[i] == element then return true elseif i < #table then has(table, element, i + 1) else return false end
 				end
-				if has({ "Mon", "Jan", "Aug" }, str) then return beautiful.widget.red end
-				if has({ "Tue", "Feb", "Sep" }, str) then return beautiful.widget.orange end
-				if has({ "Wed", "Mar", "Oct" }, str) then return beautiful.widget.yellow end
-				if has({ "Wed", "Apr", "Nov" }, str) then return beautiful.widget.green end
-				if has({ "Fri", "May", "Dec" }, str) then return beautiful.widget.blue end
-				if has({ "Sat", "Jun" }, str) then return beautiful.widget.indigo end
+				if has({ "Mon", "Jan", "Jul" }, str) then return beautiful.widget.red end
+				if has({ "Tue", "Feb", "Aug" }, str) then return beautiful.widget.orange end
+				if has({ "Wed", "Mar", "Sep" }, str) then return beautiful.widget.yellow end
+				if has({ "Thu", "Apr", "Oct" }, str) then return beautiful.widget.green end
+				if has({ "Fri", "May", "Nov" }, str) then return beautiful.widget.blue end
+				if has({ "Sat", "Jun", "Dec" }, str) then return beautiful.widget.indigo end
 				return beautiful.widget.violet
 			end
 

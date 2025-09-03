@@ -81,11 +81,8 @@ awful.layout.layouts = {
 -- Create a launcher widget and a main menu
 mymainmenu = awful.menu({
   items = {
-    { "Firefox",  "firefox" },
-    { "File Mgr", "thunar" },
-    { "Terminal", terminal },
     { "Suspend",  'systemctl suspend' },
-    { "Shutdown", 'shutdown now' },
+    --{ "Shutdown", 'shutdown now' },
   }
 })
 

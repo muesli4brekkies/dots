@@ -63,11 +63,15 @@ local globalkeys = gears.table.join(
 
   -- Vol and mute
   awful.key({}, "XF86AudioRaiseVolume", function()
-    awful.util.spawn("pactl set-sink-volume 0 +5%")
+    awful.spawn.easy_async("pamixer --get-volume", function(stdout) 
+      local chg
+      if tonumber(stdout) < 100 then chg = "+2%" else chg = "100%" end
+      awful.util.spawn("bash -c 'pactl set-sink-volume 0 "..chg.." && dunstify $(pamixer --get-volume-human) -t 250'")
+    end)
   end),
 
   awful.key({}, "XF86AudioLowerVolume", function()
-    awful.util.spawn("pactl set-sink-volume 0 -5%")
+    awful.util.spawn("bash -c 'pactl set-sink-volume 0 -2% && dunstify $(pamixer --get-volume-human) -t 250'")
   end),
 
   awful.key({}, "XF86AudioMute", function()
@@ -216,6 +220,7 @@ local globalkeys = gears.table.join(
     { description = "swap with next client by index", group = "client" }),
   awful.key({ modkey, "Shift" }, "k", function() awful.client.swap.byidx(-1) end,
     { description = "swap with previous client by index", group = "client" }),
+
   awful.key({ modkey, "Control" }, "j", function() awful.screen.focus_relative(1) end,
     { description = "focus the next screen", group = "screen" }),
   awful.key({ modkey, "Control" }, "k", function() awful.screen.focus_relative(-1) end,

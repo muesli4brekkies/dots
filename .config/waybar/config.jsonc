@@ -1,0 +1,151 @@
+// -*- mode: jsonc -*-
+
+{
+    // "layer": "top", // Waybar at top layer
+    // "position": "left", // Waybar position (top|bottom|left|right)
+    "height": 30, // Waybar height (to be removed for auto height)
+    // "width": 1280, // Waybar width
+    "spacing": 0, // Gaps between modules (4px)
+    // Choose the order of the modules
+    "modules-left": [
+        "tray",
+        "custom/media"
+    ],
+    "modules-center": [
+	"niri/window",
+    ],
+    "modules-right": [
+ //      "mpd",
+ //      "idle_inhibitor",
+        "backlight",
+	//"custom/spacer",
+        "pulseaudio",
+	//"custom/spacer",
+        "network",
+	//"custom/spacer",
+ //       "power-profiles-daemon",
+        "memory",
+	//"custom/spacer",
+        "cpu",
+        "temperature",
+	//"custom/spacer",
+ //       "keyboard-state",
+ //       "sway/language",
+        "battery",
+	//"custom/spacer",
+ //       "battery#bat2",
+        "clock"
+ //       "custom/power"
+    ],
+   "custom/spacer": {
+	"format": "|"
+    },
+    "tray": {
+        "icon-size": 20,
+        "spacing": 10,
+        // "icons": {
+        //   "blueman": "bluetooth",
+        //   "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
+        // }
+    },
+    "clock": {
+        // "timezone": "America/New_York",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "format-alt": "{:%Y-%m-%d}"
+    },
+    "cpu": {
+        "states": {
+            // "good": 95,
+            "warning": 70,
+            "critical": 90
+        },
+        "format": "{usage}%",
+        //"tooltip": false
+    },
+    "memory": {
+        "format": "{}%"
+    },
+    "temperature": {
+        "thermal-zone": 2,
+        //"hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+        "warning-threshold": 60,
+        "critical-threshold": 80,
+        // "format-critical": "{temperatureC}°C {icon}",
+        "format": "{temperatureC}°C",
+    },
+    "backlight": {
+        // "device": "acpi_video1",
+        "format": "{percent}%",
+	"on-click-middle": "brightnessctl set 1%",
+	"tooltip": false
+    },
+    "battery": {
+        "states": {
+            // "good": 95,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{capacity}% {icon}",
+        "format-full": "{capacity}% {icon}",
+        "format-charging": "{capacity}%+",
+        "format-plugged": "{capacity}% ",
+        "format-alt": "{time} {icon}",
+        // "format-good": "", // An empty format will hide the module
+        // "format-full": "",
+        "format-icons": ["", "", "", "", ""]
+    },
+    "battery#bat2": {
+        "bat": "BAT2"
+    },
+    "power-profiles-daemon": {
+      "format": "{icon}",
+      "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+      "tooltip": true,
+      "format-icons": {
+        "default": "",
+        "performance": "",
+        "balanced": "",
+        "power-saver": ""
+      }
+    },
+    "network": {
+        // "interface": "wlp2*", // (Optional) To force the use of this interface
+        "format-wifi": "{essid}",
+	"states": {
+            "critical": 10,
+            "warning": 40,
+            "good": 70
+	},
+        "format-ethernet": "{ipaddr}/{cidr} ",
+        "tooltip-format": "{signalStrength} - {ifname} via {gwaddr} ",
+        "format-linked": "{ifname} (No IP) ",
+        "format-disconnected": "Disconnected ⚠",
+      //"format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+    "pulseaudio": {
+        "scroll-step": 0.5, // %, can be a float
+        "format": "{volume}%",
+        "format-bluetooth": "{volume}% {icon} {format_source}",
+        "format-bluetooth-muted": " {icon} {format_source}",
+        "format-muted": "muted",
+        "format-source": "{volume}% ",
+        "format-source-muted": "",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": ["", "", ""]
+        },
+        "on-click": "pavucontrol"
+    },
+    "niri/window": {
+	"on-click-middle": "niri msg action close-window",
+	"on-scroll-up": "niri msg action focus-column-left",
+	"on-scroll-down": "niri msg action focus-column-right",
+	"smooth-scrolling-threshold": 3,
+	"tooltip": false
+    }
+}

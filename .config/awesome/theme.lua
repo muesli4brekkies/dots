@@ -6,8 +6,8 @@ local fontname              = "IBM Plex Mono Bold "
 local taglist_square_size   = fontsize / 2
 
 theme.font                  = fontname .. fontsize
-theme.bg_normal             = "#38161f"
-theme.bg_focus              = "#621534"
+theme.bg_normal             = "#0e0e1e"
+theme.bg_focus              = "#1e1e2e"
 theme.bg_urgent             = "#aa4400"
 theme.bg_minimize           = "#222222"
 theme.bg_systray            = theme.bg_normal
@@ -24,7 +24,7 @@ theme.border_focus          = theme.bg_focus
 theme.border_marked         = "#eeeeec"
 
 theme.wibar_fg              = "#008c99"
-theme.wibar_bg              = "#38161f"
+theme.wibar_bg              = theme.bg_normal
 theme.tasklist_disable_icon = "true"
 theme.tasklist_align        = "center"
 

@@ -1,0 +1,15 @@
+#!/bin/zsh
+vim () {
+	needsu() { test $(stat -c %u $1 2>/dev/null) -eq 0; }
+
+	if { test -z "$*" && needsu $(pwd) } || for a in $@; do needsu $a && break; done; then
+		if printf "\e[97;41muse sudo?\e[0m "; read -qs "?[y/N]"; then 
+			printf "\n\e[92musing sudo\e[0m\n"
+			local su="sudo"
+		else 
+			printf "\n\e[97;41mNOT using sudo (file RO)\e[0m\n"
+		fi
+		read -t 1
+	fi
+	eval $su /usr/bin/vim $@
+}

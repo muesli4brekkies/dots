@@ -1,0 +1,54 @@
+#!/bin/zsh
+update(){
+	case $DISTRO in
+		gentoo)
+			doas emerge --sync --ask=n
+			doas emerge -uDN world
+			doas emerge -c
+			eclean-dist
+			doas eclean-pkg
+			if command -v eclean-kernel >/dev/null
+                        then
+                                doas eclean-kernel
+                        else
+                                echo "eclean-kernel does not exist"
+                        fi
+		;;
+		arch)
+			while :; do
+				read '?update mirrors? [y/N] ' ans
+				case "$ans" in
+					(y|Y|yes|Yes|YES) 
+						x="done"
+						sudo reflector --verbose -c gb -l10 --sort rate --save /etc/pacman.d/mirrorlist
+						break
+					;;
+					(n|N|no|No|NO) 
+						x="done"
+						break
+						;;
+					*) printf "what are %s??\nTry again...\n" "$ans"  ;;
+				esac
+			done
+			cmd=$(for c in yay paru aura; do command -v $c && break; done)
+			if ! eval $cmd; then
+				echo "$cmd crapped out, running \"sudo pacman -Syu instead\""
+				sudo pacman -Syu
+			fi
+			if ! pacman -Qtdq | sudo pacman -Rns - >/dev/null 2>&1; then
+				echo '>>> pacman -Qtdq reports no orphans'
+			fi
+			if command -v paccache >/dev/null; then 
+				sudo paccache -vrrk1
+			else
+				echo "aint no paccache yo"
+				false 
+			fi
+		;;
+		debian)
+			sudo apt update
+			sudo apt upgrade
+			sudo apt autoremove
+		;;
+	esac
+}
