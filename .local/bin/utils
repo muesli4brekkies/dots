@@ -1,17 +1,18 @@
 #!/bin/bash
-[ $DISTRO == "arch" ] && {
-	logfile="/var/log/pacman.log"
-	update_rx="full system upgrade$"
-	 __stripTime__() { date +%s -d $(awk '{gsub("[\\[\\]]",""); print $1; exit}' $1); }
-}
+case $DISTRO in
+	arch)
+		logfile="/var/log/pacman.log"
+		update_rx="full system upgrade$"
+		 strip_time() { date +%s -d $(awk '{gsub("[\\[\\]]",""); print $1; exit}' $1); }
+	;;
+	gentoo)
+		logfile="/var/log/emerge.log"
+		update_rx="newuse.+update.+deep.+world"
+		strip_time() { awk -F: '{print $1; exit}' $1; }
+	;;
+esac
 
-[ $DISTRO == "gentoo" ] && {
-	logfile="/var/log/emerge.log"
-	update_rx="newuse.+update.+deep.+world"
-	__stripTime__() { awk -F: '{print $1; exit}' $1; }
-}
-
-__timeDiff__() {
+time_diff() {
 	secs=$(( $(date +%s) - $1 ))
 	divmod(){ printf $(( secs / $1 % $2)); }
 
@@ -27,23 +28,22 @@ EOF
 }
 
 system-age() {
-	__timeDiff__ $(__stripTime__ $logfile)
+	time_diff $(strip_time $logfile)
 }
 
 last-update() {
-	__timeDiff__ $(__stripTime__ <(tac $logfile | grep -Em1 "${update_rx}" ))
+	time_diff $(strip_time <(tac $logfile | grep -Em1 "${update_rx}" ))
 }
 
 last-login() {
-	__timeDiff__ $(date +%s -d $(last $USER -5i --time-format iso | awk '{ if ($4==last || last=="") { last=$4 } else { print $4; exit } }'))
+	time_diff $(date +%s -d $(last $USER -5i --time-format iso | awk '{ if ($4==last || last=="") { last=$4 } else { print $4; exit } }'))
 }
 
 uptime() {
-	__timeDiff__ $(date +%s -d "$(/usr/bin/uptime -s)")
+	time_diff $(date +%s -d "$(/usr/bin/uptime -s)")
 }
 
 gui() {
-	#read -n1 -p "0=niri, 1=awesome: " v
 	read -n1 -p "0=niri, 1=awesome: " a
 	case $a in
 		0) exec niri-session ;;
@@ -63,10 +63,11 @@ pow() {
 
 ansi() {
 	help() {
-		printf '%s\n' "[ usage ]" 'utils ansi red bright' 'utils ansi rgb 0 100 255' 'utils ansi hex fe dc ba' 'utils ansi rgb abcdef' >&2
-	
+		>&2 printf '%s\n' "[ usage ]" 'utils ansi red bright' 'utils ansi rgb 0 100 255' 'utils ansi hex fe dc ba' 'utils ansi rgb abcdef'
+
 		exit 1
 	}
+	case $2 in (b|br|bri|bright) local col=90;; *) local col=30;; esac
 	case $1 in
 		rgb|hex)
 		local r=$2
@@ -87,22 +88,22 @@ ansi() {
 			printf "\e[38;2;$r;$g;${b}m"
 			return 0
 		else
-			err "bad $1 code"
+			err "this is bad: $@"
 			help
 		fi
 		;;
-		(k|b|black|key) col=0;;
-		(r|red)         col=1;;
-		(g|gr|green)    col=2;;
-		(y|yel|yello)   col=3;;
-		(b|bl|blue)     col=4;;
-		(m|mag|magenta) col=5;;
-		(c|cy|cyan)     col=6;;
-		(w|whi|white)   col=7;;
+		(w|whi|white)   ((col++));&
+		(c|cy|cyan)     ((col++));&
+		(m|mag|magenta) ((col++));&
+		(b|bl|blue)     ((col++));&
+		(y|yel|yello)   ((col++));&
+		(g|gr|green)    ((col++));&
+		(r|red)         ((col++));&
+		(k|b|black|key) ;;
 		*) printf "dunno what a \"$1\" might be\n" >&2
 		help
 	esac
-	printf '\e[%s%sm' $(case $2 in (b|br|bri|bright) echo 9;; *) echo 3;; esac) $col
+	printf '\e[%sm' $col
 }
 
 err() { 1>&2 echo $@; exit 1; }

@@ -8,50 +8,29 @@
     "spacing": 0, // Gaps between modules (4px)
     // Choose the order of the modules
     "modules-left": [
-        "tray",
-        "custom/media"
+        "tray"
     ],
     "modules-center": [
-	"niri/window",
+	"niri/window"
     ],
     "modules-right": [
- //      "mpd",
- //      "idle_inhibitor",
         "backlight",
-	//"custom/spacer",
         "pulseaudio",
-	//"custom/spacer",
         "network",
-	//"custom/spacer",
- //       "power-profiles-daemon",
         "memory",
-	//"custom/spacer",
         "cpu",
         "temperature",
-	//"custom/spacer",
- //       "keyboard-state",
- //       "sway/language",
+        "power-profiles-daemon",
         "battery",
-	//"custom/spacer",
- //       "battery#bat2",
         "clock"
- //       "custom/power"
     ],
-   "custom/spacer": {
-	"format": "|"
-    },
     "tray": {
         "icon-size": 20,
         "spacing": 10,
-        // "icons": {
-        //   "blueman": "bluetooth",
-        //   "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
-        // }
     },
     "clock": {
-        // "timezone": "America/New_York",
-        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format-alt": "{:%Y-%m-%d}"
+        "format": "{:%a %d %b %R}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
     },
     "cpu": {
         "states": {
@@ -60,7 +39,7 @@
             "critical": 90
         },
         "format": "{usage}%",
-        //"tooltip": false
+        "on-click": "kitty btop"
     },
     "memory": {
         "format": "{}%"
@@ -74,6 +53,7 @@
         "format": "{temperatureC}°C",
     },
     "backlight": {
+        "scroll-step": 0.3, // %, can be a float
         // "device": "acpi_video1",
         "format": "{percent}%",
 	"on-click-middle": "brightnessctl set 1%",
@@ -81,25 +61,18 @@
     },
     "battery": {
         "states": {
-            // "good": 95,
+            "good": 95,
             "warning": 30,
             "critical": 15
         },
-        "format": "{capacity}% {icon}",
-        "format-full": "{capacity}% {icon}",
+        "format": "{capacity}%",
+        "format-full": "{capacity}%",
         "format-charging": "{capacity}%+",
-        "format-plugged": "{capacity}% ",
-        "format-alt": "{time} {icon}",
-        // "format-good": "", // An empty format will hide the module
-        // "format-full": "",
-        "format-icons": ["", "", "", "", ""]
-    },
-    "battery#bat2": {
-        "bat": "BAT2"
+        "format-plugged": "{capacity}%"
     },
     "power-profiles-daemon": {
       "format": "{icon}",
-      "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+      "tooltip-format": "{profile}",
       "tooltip": true,
       "format-icons": {
         "default": "",
@@ -123,11 +96,11 @@
       //"format-alt": "{ifname}: {ipaddr}/{cidr}"
     },
     "pulseaudio": {
-        "scroll-step": 0.5, // %, can be a float
+        "scroll-step": 0.1, // %, can be a float
         "format": "{volume}%",
         "format-bluetooth": "{volume}% {icon} {format_source}",
         "format-bluetooth-muted": " {icon} {format_source}",
-        "format-muted": "muted",
+        "format-muted": "mute",
         "format-source": "{volume}% ",
         "format-source-muted": "",
         "format-icons": {
@@ -139,7 +112,8 @@
             "car": "",
             "default": ["", "", ""]
         },
-        "on-click": "pavucontrol"
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     },
     "niri/window": {
 	"on-click-middle": "niri msg action close-window",

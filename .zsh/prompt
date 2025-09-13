@@ -1,54 +1,53 @@
 #!/bin/zsh
-## prompt
-def='%F{d}%K{d}'
-c_deco=$def
-c_user=$dev
-c_at=$def
-c_host=$def
-case $DISTRO in
-	gentoo) {
-		c_deco='%F{#990099}' 
-		c_user='%F{#ff00ff}' 
-		c_at='%F{#00ffff}' 
-		c_host='%F{#00aaff}' 
-	};;
-	arch) {
-		c_deco='%F{#00bbbb}' 
-		c_user='%F{#00ffff}' 
-		c_at='%F{#00ffff}' 
-		c_host='%F{#00aaff}' 
-	};;
-	debian) {
-		c_deco='%F{#990000}' 
-		c_user='%F{#ffffff}' 
-		c_at='%F{#00ffff}' 
-		c_host='%F{green}' 
-	};;
-esac
-c_ssh='%K{#ff0000}%F{#ffffff}' 
-c_time='%F{#ffffff}' 
-c_errbr='%F{#ff0000}'
-c_errcode='%K{#ff0000}%F{#ffffff}'
-c_pid='%F{#ffff00}'
-c_pwd='%F{#ffffff}'
-c_git='%F{#009900}'
-downpipe="%B$c_deco╔"
-uppipe="$c_deco╚>$def"
-lbr="${c_deco}["
-rbr="${c_deco}]"
-userhost="$lbr$c_user%n$c_at@%b$c_host%M%B$rbr "
-sshcon=$([[ $SSH_CONNECTION ]] && echo "${c_ssh}SSH${def} ")
-pid=" $c_pid%!"
-errcode="%0(?.. %B$c_errbr<$c_errcode%?$def$c_errbr>$def)"
-tstamp="%B$lbr$c_time%*$rbr"
-
-PROMPT=$'$(
-	workingd=" $c_pwd$(pwd | sed -e '\''s/\/home\/muesli/\~/g'\'' -Ee '\''s/^~?((\/[^\/]+){3}).+((\/[^\/]+){3})$/\1...\3/'\'')"
-	git="%b$c_git$vcs_info_msg_0_%B"
+mkprompt () {
+	def='%F{d}%K{d}'
+	local c_deco=$def
+	local c_user=$dev
+	local c_at=$def
+	local c_host=$def
+	case $DISTRO in
+		gentoo)
+			local c_deco='%F{#990099}'
+			local c_user='%F{#ff00ff}'
+			local c_at='%F{#00ffff}'
+			local c_host='%F{#00aaff}'
+		;;
+		arch)
+			local c_deco='%F{#00bbbb}'
+			local c_user='%F{#00ffff}'
+			local c_at='%F{#00ffff}'
+			local c_host='%F{#00aaff}'
+		;;
+		debian)
+			local c_deco='%F{#990000}'
+			local c_user='%F{#ffffff}'
+			local c_at='%F{#00ffff}'
+			local c_host='%F{green}'
+	esac
+	local c_ssh='%K{#ff0000}%F{#ffffff}'
+	local c_time='%F{#ffffff}'
+	local c_errbr='%F{#ff0000}'
+	local c_errcode='%K{#ff0000}%F{#ffffff}'
+	local c_pid='%F{#ffff00}'
+	local c_pwd='%F{#ffffff}'
+	local c_git='%F{#009900}'
+	local downpipe="%B$c_deco╔"
+	local uppipe="$c_deco╚>$def%b "
+	local lbr="${c_deco}["
+	local rbr="${c_deco}]"
+	local userhost="$lbr$c_user%n$c_at@%b$c_host%M%B$rbr "
+	local sshcon=$([[ $SSH_CONNECTION ]] && echo "${c_ssh}SSH${def} ")
+	local pid=" $c_pid%!"
+	local errcode="%0(?.. %B$c_errbr<$c_errcode%?$def$c_errbr>$def)"
+	local tstamp="%B$lbr$c_time%*$rbr"
+	local git="%b$c_git$vcs_info_msg_0_%B"
+	local rx='(\/[^\/]+){4}'
+	local workingd=" $c_pwd$(sed -e 's/\/home\/'$USER'/\~/g' -Ee 's/^(~?'$rx').+('$rx')$/\1\/...\3/' <<< $PWD)"
 	cat <<- EOF
-	$downpipe$userhost$sshcon$tstamp$errcode$pid$git$workingd
-	$uppipe%b 
+		$downpipe$userhost$sshcon$tstamp$errcode$pid$git$workingd
+		$uppipe
 	EOF
-)'
+}
 
+PROMPT=$'$(mkprompt)'
 PS2=$'\t%B$bgre>%b$def '

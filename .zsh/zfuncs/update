@@ -30,12 +30,12 @@ update(){
 					*) printf "what are %s??\nTry again...\n" "$ans"  ;;
 				esac
 			done
-			cmd=$(for c in yay paru aura; do command -v $c && break; done)
+			local cmd=$(for c in yay paru aura; do command -v $c && break; done)
 			if ! eval $cmd; then
 				echo "$cmd crapped out, running \"sudo pacman -Syu instead\""
 				sudo pacman -Syu
 			fi
-			if ! pacman -Qtdq | sudo pacman -Rns - >/dev/null 2>&1; then
+			if ! pacman -Qtdq | sudo pacman -Rns - 2>/dev/null; then
 				echo '>>> pacman -Qtdq reports no orphans'
 			fi
 			if command -v paccache >/dev/null; then 
