@@ -1,38 +1,26 @@
+@define-color bg #1e1e2e;
+@define-color def #e3af4b;
+
+@define-color bcyan #26afc7;
+@define-color byel #ddaf4b;
+
+@define-color blu #2680b6;
+
+@define-color good #008000;
+@define-color warn #999900;
+@define-color bad #cc5555;
+@define-color crit #FF0000;
+
+
+
+
 * {
     /* `otf-font-awesome` is required to be installed for icons */
     font-family: IBM Plex Mono;
     font-weight: Bold;
     font-size: 15px;
-    background-color: #1e1e2e;
-    color: #e3af4b;
-}
-
-window#waybar {
-    border-bottom: 3px solid rgba(100, 114, 125, 0.5);
-    transition-property: background-color;
-    transition-duration: .5s;
-}
-
-window#waybar.hidden {
-    opacity: 0.2;
-}
-
-/*
-window#waybar.empty {
-    background-color: transparent;
-}
-window#waybar.solo {
-    background-color: #FFFFFF;
-}
-*/
-
-window#waybar.termite {
-    background-color: #3F3F3F;
-}
-
-window#waybar.chromium {
-    background-color: #000000;
-    border: none;
+    background-color: @bg;
+    color: @def;
 }
 
 button {
@@ -49,89 +37,48 @@ button:hover {
     box-shadow: inset 0 -3px #ffffff;
 }
 
-/* you can set a style on hover for any module like this */
 #pulseaudio:hover {
-    background-color: #005099;
+    background-color: @bcyan;
+    color: @bg;
 }
 
 #backlight:hover {
-    background-color: #a37899;
-}
-
-#workspaces button {
-    padding: 0 5px;
-    background-color: transparent;
-    color: #ffffff;
-}
-
-#workspaces button:hover {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-#workspaces button.focused {
-    background-color: #64727D;
-    box-shadow: inset 0 -3px #ffffff;
-}
-
-#workspaces button.urgent {
-    background-color: #eb4d4b;
-}
-
-#mode {
-    background-color: #64727D;
-    box-shadow: inset 0 -3px #ffffff;
+    background-color: @byel;
+    color: @bg;
 }
 
 #clock,
 #battery,
 #cpu,
 #memory,
-#disk,
 #temperature,
 #backlight,
 #network,
 #pulseaudio,
-#wireplumber,
-#custom-media,
 #tray,
-#mode,
-#idle_inhibitor,
-#scratchpad,
-#power-profiles-daemon,
-#mpd {
-    padding: 0 8px;
-}
-
-#window,
-#workspaces {
-    margin: 0 4px;
-}
-
-/* If workspaces is the leftmost module, omit left margin */
-.modules-left > widget:first-child > #workspaces {
-    margin-left: 0;
-}
-
-/* If workspaces is the rightmost module, omit right margin */
-.modules-right > widget:last-child > #workspaces {
-    margin-right: 0;
+#power-profiles-daemon
+{
+    padding: 0 5px;
 }
 
 #clock {
 	color: #cc6699
 }
 
+#battery.charging, #battery.plugged {
+        color: #00aaaa;
+}
 
-#battery.critical {
-        color: #00aa00;
+#battery {
+    color: #008000;
 }
 
 #battery.warning {
-        color: #ffff00;
+    color: @warn;
 }
 
-#battery.good, #battery.full, #battery.charging, #battery.plugged {
-        color: #00aaaa;
+#battery.critical {
+    color: #ff0000;
 }
 
 @keyframes blink {
@@ -152,111 +99,77 @@ button:hover {
 }
 
 #power-profiles-daemon {
-    padding-right: 15px;
+    padding-right: 10px;
 }
 
 #power-profiles-daemon.performance {
-    color: #f53c3c;
+    color: @crit;
 }
 
 #power-profiles-daemon.balanced {
-    color: #2980b9;
+    color: @blu;
 }
 
 #power-profiles-daemon.power-saver {
-    color: #009900;
+    color: @good;
 }
-
-label:focus {
-    background-color: #000000;
-}
-
 
 #cpu {
-    color: #008000;
+    color: @good;
 }
 
 #cpu.warning {
-    color: #aaaa00;
+    color: @warn;
 }
 
 #cpu.critical {
-    color: #ff0000;
+    color: @crit;
 }
 
 #memory {
-    color: #9f3efa;
-}
-
-#disk {
-    background-color: #964B00;
+    color: #8f3eea;
 }
 
 #backlight {
-    color: #dee84f;
+    color: @byel;
 }
 
 #network {
-    color: #00aa00;
+    color: @good;
 }
 
 #network.warning {
-    color: #aaaa00;
+    color: @warn;
 }
 
 #network.critical {
-    color: #aa0000;
+    color: @bad;
 }
 
 #network.disconnected {
-    background-color: #f53c3c;
+    background-color: @crit;
+    color: @bg;
 }
 
 #pulseaudio {
-    color: #26afc7;
+    color: @bcyan;
 }
 
 #pulseaudio.muted {
-    background-color: #26afc7;
-    color: #2a5c45;
-}
-
-#wireplumber {
-    background-color: #fff0f5;
-    color: #000000;
-}
-
-#wireplumber.muted {
-    background-color: #f53c3c;
-}
-
-#custom-media {
-    background-color: #66cc99;
-    color: #2a5c45;
-    min-width: 100px;
-}
-
-#custom-media.custom-spotify {
-    background-color: #66cc99;
-}
-
-#custom-media.custom-vlc {
-    background-color: #ffa000;
+    background-color: @bcyan;
+    color: @bg;
 }
 
 #temperature {
-    color: #00aa00;
+    color: @good;
 }
 
 #temperature.warning {
-    color: #aaaa00;
+    color: @warn
 }
 
 #temperature.critical {
-    color: #ff0000;
-}
-
-#tray {
+    color: @crit;
 }
 
 #tray > .passive {

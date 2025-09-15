@@ -36,7 +36,7 @@ last-update() {
 }
 
 last-login() {
-	time_diff $(date +%s -d $(last $USER -5i --time-format iso | awk '{ if ($4==last || last=="") { last=$4 } else { print $4; exit } }'))
+	time_diff $(date +%s -d $(last $USER -5i --time-format iso | sed -E 's/ssh|(pts\/|tty)[0-99]//g' | awk '{ if ($3==last || last=="") { last=$3 } else { print $3; exit } }'))
 }
 
 uptime() {

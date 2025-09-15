@@ -26,7 +26,7 @@
     ],
     "tray": {
         "icon-size": 20,
-        "spacing": 10,
+        "spacing": 5,
     },
     "clock": {
         "format": "{:%a %d %b %R}",
